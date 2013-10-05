@@ -19,7 +19,7 @@ class Mildred.Dispatcher
     @controllers = options.controllers
 
     # Listen to global events.
-    Backbone.Events.on 'router:match', @dispatch, this
+    Backbone.on 'router:match', @dispatch, this
 
   # Controller management.
   # Starting and disposing controllers.
@@ -78,7 +78,7 @@ class Mildred.Dispatcher
     # Dispose the previous controller.
     if @currentController
       # Notify the rest of the world beforehand.
-      Backbone.Events.trigger 'beforeControllerDispose', @currentController
+      Backbone.trigger 'beforeControllerDispose', @currentController
 
       # Passing new parameters that the action method will receive.
       @currentController.dispose params, route, options
@@ -97,7 +97,7 @@ class Mildred.Dispatcher
     @adjustURL route, params, options
 
     # We're done! Spread the word!
-    Backbone.Events.trigger 'dispatcher:dispatch', @currentController,
+    Backbone.trigger 'dispatcher:dispatch', @currentController,
       params, route, options
 
   # Executes before action filterer.
@@ -132,5 +132,17 @@ class Mildred.Dispatcher
 
     # Tell the router to actually change the current URL.
     url = route.path + if route.query then "?#{route.query}" else ""
-    Backbone.Events.trigger 'router:changeURL', url, options if options.changeURL
+    Backbone.trigger 'router:changeURL', url, options if options.changeURL
 
+  # Disposal
+  # --------
+
+  disposed: false
+
+  dispose: ->
+    return if @disposed
+
+    # turn off the events
+    @off
+
+    @disposed = true

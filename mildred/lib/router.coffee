@@ -13,9 +13,9 @@ class Mildred.Router
     # Cached regex for stripping a leading subdir and hash/slash.
     @removeRoot = new RegExp('^' + utils.escapeRegExp(@options.root) + '(#)?')
 
-    Backbone.Events.on 'router:route', @route, this
-    Backbone.Events.on 'router:reverse', @reverse, this
-    Backbone.Events.on 'router:changeURL', @changeURL, this
+    Backbone.on 'router:route', @route, this
+    Backbone.on 'router:reverse', @reverse, this
+    Backbone.on 'router:changeURL', @changeURL, this
 
     @createHistory()
   # Create a Backbone.History instance.
@@ -26,10 +26,6 @@ class Mildred.Router
     # Start the Backbone.History instance to start routing.
     # This should be called after all routes have been registered.
     Backbone.history.start @options
-
-  # Stop the current Backbone.History instance from observing URL changes.
-  stopHistory: ->
-    Backbone.history.stop() if Backbone.History.started
 
   # Connect an address with a controller action.
   # Creates a route on the Backbone.History instance.
@@ -146,16 +142,13 @@ class Mildred.Router
     return if @disposed
 
     # Stop Backbone.History instance and remove it.
-    @stopHistory()
+    Backbone.history.stop()
     delete Backbone.history
 
-    Backbone.Events.off 'router:route'
-    Backbone.Events.off 'router:reverse'
-    Backbone.Events.off 'router:changeURL'
+    Backbone.off 'router:route'
+    Backbone.off 'router:reverse'
+    Backbone.off 'router:changeURL'
 
     # Finished.
     @disposed = true
-
-    # You’re frozen when your heart’s not open.
-    Object.freeze? this
 

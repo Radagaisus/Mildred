@@ -1,11 +1,11 @@
-SyncMachine =
-  UNSYNCED: 'unsynced'
-  SYNCING: 'syncing'
-  SYNCED: 'synced'
+UNSYNCED = 'unsynced'
+SYNCING = 'syncing'
+SYNCED = 'synced'
 
-  STATE_CHANGE: 'syncStateChange'
+STATE_CHANGE = 'syncStateChange'
 
-  _syncState: @UNSYNCED
+Mildred.SyncMachine =
+  _syncState: UNSYNCED
   _previousSyncState: null
 
 # Get the current state
@@ -67,10 +67,8 @@ SyncMachine =
 
 for event in [@UNSYNCED, @SYNCING, @SYNCED, @STATE_CHANGE]
   do (event) ->
-    SyncMachine[event] = (callback, context = this) ->
+    Mildred.SyncMachine[event] = (callback, context = this) ->
       @on event, callback, context
       callback.call(context) if @_syncState is event
 
-# You’re frozen when your heart’s not open.
-Object.freeze? SyncMachine
 

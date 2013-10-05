@@ -76,6 +76,3 @@ class Mildred.Composition
 
     # Finished.
     @disposed = true
-
-    # You're frozen when your heart’s not open.
-    Object.freeze? this

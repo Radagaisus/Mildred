@@ -24,9 +24,9 @@ class Mildred.Composer
     @compositions = {}
 
     # Subscribe to events.
-    Backbone.Events.on 'composer:compose', @compose, this
-    Backbone.Events.on 'composer:retrieve', @retrieve, this
-    Backbone.Events.on 'dispatcher:dispatch', @cleanup
+    Backbone.on 'composer:compose', @compose, this
+    Backbone.on 'composer:retrieve', @retrieve, this
+    Backbone.on 'dispatcher:dispatch', @cleanup
 
   # Constructs a composition and composes into the active compositions.
   # This function has several forms as described below:
@@ -160,6 +160,3 @@ class Mildred.Composer
 
     # Finished
     @disposed = true
-
-    # You’re frozen when your heart’s not open
-    Object.freeze? this

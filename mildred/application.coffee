@@ -9,9 +9,9 @@ class Mildred.Application
   # -------------------------
 
   # The application instantiates three **core modules**:
-  layout: null
-  router: null
-  composer: null
+  layout: undefined
+  router: undefined
+  composer: undefined
   started: false
 
   constructor: (options = {}) ->
@@ -25,8 +25,6 @@ class Mildred.Application
     # Set template function globally
     if typeof options.templateFunction is 'function'
       Mildred.templateFunction = options.templateFunction
-    else
-      throw new Error 'Application#initialize: App must have templateFunction'
 
     # Initialize core components.
     # ---------------------------
@@ -97,3 +95,18 @@ class Mildred.Application
 
     # Freeze the application instance to prevent further changes.
     Object.freeze? this
+
+  # Disposal
+  # --------
+  disposed: false
+
+  dispose: ->
+    # Am I already disposed?
+    return if @disposed
+
+    properties = ['dispatcher', 'layout', 'router', 'composer']
+    for prop in properties when this[prop]?
+      this[prop].dispose()
+      delete this[prop]
+
+    @disposed = true

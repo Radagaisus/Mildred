@@ -42,6 +42,3 @@ class Mildred.Model extends Backbone.Model
 
     # Finished.
     @disposed = true
-
-    # You’re frozen when your heart’s not open.
-    Object.freeze? this

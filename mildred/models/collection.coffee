@@ -38,6 +38,3 @@ class Mildred.Collection extends Backbone.Collection
 
     # Finished.
     @disposed = true
-
-    # You’re frozen when your heart’s not open.
-    Object.freeze? this

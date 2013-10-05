@@ -25,7 +25,7 @@ class Mildred.Layout extends Mildred.View
     # Per default, jump to the top of the page.
       scrollTo: [0, 0]
 
-    @on 'adjustTitle', @adjustTitle, this
+    Backbone.on 'adjustTitle', @adjustTitle, this
 
     super
 
@@ -47,11 +47,7 @@ class Mildred.Layout extends Mildred.View
   # Get the title from the title property of the current controller.
   adjustTitle: (subtitle = '') ->
     title = @settings.titleTemplate {@title, subtitle}
-    # Internet Explorer < 9 workaround.
-    setTimeout =>
-      document.title = title
-      Backbone.Events.trigger 'adjustTitle', subtitle, title
-    , 50
+    document.title = title
     title
 
   # Automatic routing of internal links

@@ -139,14 +139,14 @@ utils =
 
       # Handle models.
       if value instanceof Backbone.Model
-        delegator[key] = serializeModelAttributes value, model, modelStack
+        delegator[key] = utils.serializeModelAttributes value, model, modelStack
 
         # Handle collections.
       else if value instanceof Backbone.Collection
         serializedModels = []
         for otherModel in value.models
           serializedModels.push(
-            serializeModelAttributes(otherModel, model, modelStack)
+            utils.serializeModelAttributes(otherModel, model, modelStack)
           )
         delegator[key] = serializedModels
 

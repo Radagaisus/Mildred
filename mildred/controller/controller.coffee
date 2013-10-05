@@ -2,6 +2,9 @@ class Mildred.Controller
   # Borrow the static extend method from Backbone.
   @extend = Backbone.Model.extend
 
+  # Mixin Backbone events.
+  _.extend @prototype, Backbone.Events
+
   view: null
 
   # Internal flag which stores whether `redirectTo`
@@ -19,7 +22,7 @@ class Mildred.Controller
 
     # Change document title.
   adjustTitle: (subtitle) ->
-    Backbone.Events.trigger 'adjustTitle', subtitle
+    Backbone.trigger 'adjustTitle', subtitle
 
   # Composer
   # --------
@@ -28,7 +31,7 @@ class Mildred.Controller
   # composer for information on parameters, etc.
   compose: (name) ->
     method = if arguments.length is 1 then 'retrieve' else 'compose'
-    Backbone.Events.trigger "composer:#{method}", arguments...
+    Backbone.trigger "composer:#{method}", arguments...
 
   # Redirection
   # -----------
@@ -52,13 +55,10 @@ class Mildred.Controller
       delete this[prop]
 
     # Unbind handlers of global events.
-    @unsubscribeAllEvents()
+    @off()
 
     # Unbind all referenced handlers.
     @stopListening()
 
     # Finished.
     @disposed = true
-
-    # You're frozen when your heart’s not open.
-    Object.freeze? this

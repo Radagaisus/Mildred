@@ -6,7 +6,7 @@
 
   exec = require('child_process').exec;
 
-  appFiles = ['application_spec', 'sync_machine_spec', 'view_spec', 'layout_spec', 'controller_spec', 'model_spec', 'collection_spec'];
+  appFiles = ['application_spec', 'sync_machine_spec', 'view_spec', 'collection_view_spec', 'layout_spec', 'controller_spec', 'model_spec', 'collection_spec'];
 
   task('build', 'Build single test file from source files', function() {
     var appContents, file, index, process, remaining, _fn, _i, _len;

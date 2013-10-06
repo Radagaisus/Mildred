@@ -54,10 +54,7 @@
         expect(collection.dispose).to.be.a('function');
         collection.dispose();
         expect(collection.length).to.be(0);
-        expect(collection.disposed).to.be(true);
-        if (Object.isFrozen) {
-          return expect(Object.isFrozen(collection)).to.be(true);
-        }
+        return expect(collection.disposed).to.be(true);
       });
       it('should fire a dispose event', function() {
         var disposeSpy;

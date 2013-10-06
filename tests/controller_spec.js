@@ -10,7 +10,7 @@
     });
     afterEach(function() {
       controller.dispose();
-      return mediator.removeHandlers(['router:route']);
+      return Backbone.off('router:route');
     });
     it('should mixin a Backbone.Events', function() {
       var name, value, _ref, _results;
@@ -35,7 +35,7 @@
       var routerRoute, url;
       expect(controller.redirectTo).to.be.a('function');
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       url = 'redirect-target/123';
       controller.redirectTo(url);
       expect(controller.redirected).to.be(true);
@@ -44,7 +44,7 @@
     it('should redirect to a URL with routing options', function() {
       var options, routerRoute, url;
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       url = 'redirect-target/123';
       options = {
         replace: true
@@ -56,7 +56,7 @@
     it('should redirect to a named route', function() {
       var name, params, pathDesc, routerRoute;
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       name = 'params';
       params = {
         one: '21'
@@ -72,7 +72,7 @@
     it('should redirect to a named route with options', function() {
       var name, options, params, pathDesc, routerRoute;
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       name = 'params';
       params = {
         one: '21'
@@ -91,20 +91,16 @@
     it('should adjust page title', function() {
       var spy;
       spy = sinon.spy();
-      mediator.setHandler('adjustTitle', spy);
+      Backbone.on('adjustTitle', spy);
       controller.adjustTitle('meh');
       expect(spy).was.calledOnce();
       return expect(spy).was.calledWith('meh');
     });
     return describe('Disposal', function() {
-      mediator.setHandler('region:unregister', function() {});
       it('should dispose itself correctly', function() {
         expect(controller.dispose).to.be.a('function');
         controller.dispose();
-        expect(controller.disposed).to.be(true);
-        if (Object.isFrozen) {
-          return expect(Object.isFrozen(controller)).to.be(true);
-        }
+        return expect(controller.disposed).to.be(true);
       });
       it('should dispose disposable properties', function() {
         var model, view;
@@ -121,15 +117,15 @@
       it('should unsubscribe from Pub/Sub events', function() {
         var pubSubSpy;
         pubSubSpy = sinon.spy();
-        controller.subscribeEvent('foo', pubSubSpy);
+        controller.on('foo', pubSubSpy);
         controller.dispose();
-        mediator.publish('foo');
+        controller.trigger('foo');
         return expect(pubSubSpy).was.notCalled();
       });
       return it('should unsubscribe from other events', function() {
         var model, spy;
         spy = sinon.spy();
-        model = new Model;
+        model = new Mildred.Model;
         controller.listenTo(model, 'foo', spy);
         controller.dispose();
         model.trigger('foo');

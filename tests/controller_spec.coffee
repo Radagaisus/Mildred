@@ -6,7 +6,7 @@ describe 'Controller', ->
 
   afterEach ->
     controller.dispose()
-    mediator.removeHandlers ['router:route']
+    Backbone.off 'router:route'
 
   it 'should mixin a Backbone.Events', ->
     for own name, value of Backbone.Events
@@ -25,7 +25,7 @@ describe 'Controller', ->
     expect(controller.redirectTo).to.be.a 'function'
 
     routerRoute = sinon.spy()
-    mediator.setHandler 'router:route', routerRoute
+    Backbone.on 'router:route', routerRoute
 
     url = 'redirect-target/123'
     controller.redirectTo url
@@ -35,7 +35,7 @@ describe 'Controller', ->
 
   it 'should redirect to a URL with routing options', ->
     routerRoute = sinon.spy()
-    mediator.setHandler 'router:route', routerRoute
+    Backbone.on 'router:route', routerRoute
 
     url = 'redirect-target/123'
     options = replace: true
@@ -46,7 +46,7 @@ describe 'Controller', ->
 
   it 'should redirect to a named route', ->
     routerRoute = sinon.spy()
-    mediator.setHandler 'router:route', routerRoute
+    Backbone.on 'router:route', routerRoute
 
     name = 'params'
     params = one: '21'
@@ -58,7 +58,7 @@ describe 'Controller', ->
 
   it 'should redirect to a named route with options', ->
     routerRoute = sinon.spy()
-    mediator.setHandler 'router:route', routerRoute
+    Backbone.on 'router:route', routerRoute
 
     name = 'params'
     params = one: '21'
@@ -71,21 +71,17 @@ describe 'Controller', ->
 
   it 'should adjust page title', ->
     spy = sinon.spy()
-    mediator.setHandler 'adjustTitle', spy
+    Backbone.on 'adjustTitle', spy
     controller.adjustTitle 'meh'
     expect(spy).was.calledOnce()
     expect(spy).was.calledWith 'meh'
 
   describe 'Disposal', ->
-    mediator.setHandler 'region:unregister', ->
-
     it 'should dispose itself correctly', ->
       expect(controller.dispose).to.be.a 'function'
       controller.dispose()
 
       expect(controller.disposed).to.be true
-      if Object.isFrozen
-        expect(Object.isFrozen(controller)).to.be true
 
     it 'should dispose disposable properties', ->
       model = controller.model = new Mildred.Model()
@@ -101,16 +97,16 @@ describe 'Controller', ->
 
     it 'should unsubscribe from Pub/Sub events', ->
       pubSubSpy = sinon.spy()
-      controller.subscribeEvent 'foo', pubSubSpy
+      controller.on 'foo', pubSubSpy
 
       controller.dispose()
 
-      mediator.publish 'foo'
+      controller.trigger 'foo'
       expect(pubSubSpy).was.notCalled()
 
     it 'should unsubscribe from other events', ->
       spy = sinon.spy()
-      model = new Model
+      model = new Mildred.Model
       controller.listenTo model, 'foo', spy
 
       controller.dispose()

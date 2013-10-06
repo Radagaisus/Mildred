@@ -279,7 +279,6 @@ class Mildred.View extends Backbone.View
       # If the model/collection is a SyncMachine, add a `synced` flag,
       # but only if it’s not present yet.
       if typeof source.isSynced is 'function' and not ('synced' of data)
-        console.log source.isSynced()
         data.synced = source.isSynced()
 
     data
@@ -287,7 +286,7 @@ class Mildred.View extends Backbone.View
   # If templateFunction is set globally at application initialize
   # return that, else fallback to underscore template
   getTemplateFunction: ->
-    if Mildred.templateFunction?
+    if typeof Mildred.templateFunction is 'function'
       return Mildred.templateFunction
     _.template
 
@@ -303,11 +302,12 @@ class Mildred.View extends Backbone.View
     # populate the template function with the view template string
     templateFunc = @getTemplateFunction @template
 
-    # Call the template function passing the template data.
-    html = templateFunc @getTemplateData()
+    if typeof templateFunc is 'function'
+      # Call the template function passing the template data.
+      html = templateFunc @getTemplateData()
 
-    # Replace HTML
-    @$el.html html
+      # Replace HTML
+      @$el.html html
 
     # Return the view.
     this

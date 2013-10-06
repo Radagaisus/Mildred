@@ -41,8 +41,6 @@ describe 'Collection', ->
       expect(collection.length).to.be 0
 
       expect(collection.disposed).to.be true
-      if Object.isFrozen
-        expect(Object.isFrozen(collection)).to.be true
 
     it 'should fire a dispose event', ->
       disposeSpy = sinon.spy()

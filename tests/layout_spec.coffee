@@ -208,8 +208,6 @@ describe 'Layout', ->
     layout.dispose()
 
     expect(layout.disposed).to.be true
-    if Object.isFrozen
-      expect(Object.isFrozen(layout)).to.be true
 
     layout.trigger 'foo'
     $('#testbed').click()

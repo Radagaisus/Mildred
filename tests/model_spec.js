@@ -168,10 +168,7 @@
       it('should dispose itself correctly', function() {
         expect(model.dispose).to.be.a('function');
         model.dispose();
-        expect(model.disposed).to.be(true);
-        if (Object.isFrozen) {
-          return expect(Object.isFrozen(model)).to.be(true);
-        }
+        return expect(model.disposed).to.be(true);
       });
       it('should fire a dispose event', function() {
         var disposeSpy;

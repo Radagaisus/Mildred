@@ -1152,6 +1152,980 @@
     });
   });
 
+  describe('CollectionView', function() {
+    var ItemView, TestCollectionView, addOne, addThree, basicSetup, collection, collectionView, createCollection, createCollectionView, fillCollection, freshModels, getAllChildren, getViewChildren, oneModel, threeModels, viewsMatchCollection;
+    collection = null;
+    collectionView = null;
+    ItemView = (function(_super) {
+
+      __extends(ItemView, _super);
+
+      function ItemView() {
+        return ItemView.__super__.constructor.apply(this, arguments);
+      }
+
+      ItemView.prototype.tagName = 'li';
+
+      ItemView.prototype.initialize = function() {
+        ItemView.__super__.initialize.apply(this, arguments);
+        return this.$el.attr({
+          id: this.model.id,
+          cid: this.model.cid
+        });
+      };
+
+      ItemView.prototype.templateFunction = function(templateData) {
+        return templateData.title;
+      };
+
+      ItemView.prototype.getTemplateFunction = function() {
+        return this.templateFunction;
+      };
+
+      return ItemView;
+
+    })(Mildred.View);
+    TestCollectionView = (function(_super) {
+
+      __extends(TestCollectionView, _super);
+
+      function TestCollectionView() {
+        return TestCollectionView.__super__.constructor.apply(this, arguments);
+      }
+
+      TestCollectionView.prototype.tagName = 'ul';
+
+      TestCollectionView.prototype.animationDuration = 0;
+
+      TestCollectionView.prototype.itemView = ItemView;
+
+      return TestCollectionView;
+
+    })(Mildred.CollectionView);
+    freshModels = function() {
+      var code, _i, _results;
+      _results = [];
+      for (code = _i = 65; _i <= 90; code = ++_i) {
+        _results.push({
+          id: String.fromCharCode(code),
+          title: String(Math.random())
+        });
+      }
+      return _results;
+    };
+    fillCollection = function() {
+      return collection.reset(freshModels());
+    };
+    oneModel = function() {
+      return new Mildred.Model({
+        id: 'one',
+        title: 'one'
+      });
+    };
+    addOne = function() {
+      var model;
+      model = oneModel();
+      collection.add(model);
+      return model;
+    };
+    threeModels = function() {
+      var model1, model2, model3;
+      model1 = new Mildred.Model({
+        id: 'new1',
+        title: 'new'
+      });
+      model2 = new Mildred.Model({
+        id: 'new2',
+        title: 'new'
+      });
+      model3 = new Mildred.Model({
+        id: 'new3',
+        title: 'new'
+      });
+      return [model1, model2, model3];
+    };
+    addThree = function() {
+      var models;
+      models = threeModels();
+      collection.add(models[0], {
+        at: 0
+      });
+      collection.add(models[1], {
+        at: 10
+      });
+      collection.add(models[2]);
+      return models;
+    };
+    getViewChildren = function() {
+      return collectionView.$list.children(collectionView.itemSelector);
+    };
+    getAllChildren = function() {
+      return collectionView.$el.children();
+    };
+    viewsMatchCollection = function() {
+      var children;
+      children = getViewChildren();
+      expect(children.length).to.be(collection.length);
+      return collection.forEach(function(model, index) {
+        var $el, actualId, actualTitle, expectedId, expectedTitle;
+        $el = children.eq(index);
+        expectedId = String(model.id);
+        actualId = $el.attr('id');
+        expect(actualId).to.be(expectedId);
+        expectedTitle = model.get('title');
+        if (expectedTitle != null) {
+          actualTitle = $el.text();
+          return expect(actualTitle).to.be(expectedTitle);
+        }
+      });
+    };
+    createCollection = function(models) {
+      return collection = new Mildred.Collection(models || freshModels());
+    };
+    createCollectionView = function() {
+      return collectionView = new TestCollectionView({
+        collection: collection
+      });
+    };
+    basicSetup = function(models) {
+      createCollection(models);
+      return createCollectionView();
+    };
+    beforeEach(function() {});
+    afterEach(function() {
+      if (collectionView != null) {
+        collectionView.dispose();
+      }
+      if (collection != null) {
+        collection.dispose();
+      }
+      return collectionView = collection = null;
+    });
+    describe('Basic item rendering', function() {
+      it('should render item views', function() {
+        basicSetup();
+        return viewsMatchCollection();
+      });
+      it('should call a custom initItemView method', function() {
+        var CustomViewCollectionView, initItemView;
+        CustomViewCollectionView = (function(_super) {
+
+          __extends(CustomViewCollectionView, _super);
+
+          function CustomViewCollectionView() {
+            return CustomViewCollectionView.__super__.constructor.apply(this, arguments);
+          }
+
+          CustomViewCollectionView.prototype.tagName = 'ul';
+
+          CustomViewCollectionView.prototype.animationDuration = 0;
+
+          CustomViewCollectionView.prototype.initItemView = function(model) {
+            return new ItemView({
+              model: model
+            });
+          };
+
+          return CustomViewCollectionView;
+
+        })(Mildred.CollectionView);
+        createCollection();
+        initItemView = sinon.spy(CustomViewCollectionView.prototype, 'initItemView');
+        collectionView = new CustomViewCollectionView({
+          collection: collection
+        });
+        viewsMatchCollection();
+        expect(initItemView.callCount).to.be(collection.length);
+        return initItemView.restore();
+      });
+      it('should respect the autoRender and renderItems options', function() {
+        var children, renderAllItemsSpy, renderSpy;
+        createCollection();
+        renderSpy = sinon.spy(Mildred.CollectionView.prototype, 'render');
+        renderAllItemsSpy = sinon.spy(Mildred.CollectionView.prototype, 'renderAllItems');
+        collectionView = new TestCollectionView({
+          collection: collection,
+          autoRender: false,
+          renderItems: false
+        });
+        expect(renderSpy).was.notCalled();
+        expect(renderAllItemsSpy).was.notCalled();
+        children = getAllChildren();
+        expect(children.length).to.be(0);
+        expect(_.has(collectionView, '$list')).to.be(false);
+        collectionView.render();
+        expect(collectionView.$list).to.be.a(jQuery);
+        expect(collectionView.$list.length).to.be(1);
+        collectionView.renderAllItems();
+        viewsMatchCollection();
+        renderSpy.restore();
+        return renderAllItemsSpy.restore();
+      });
+      return it('should init subviews with disabled autoRender', function() {
+        var AutoRenderCollectionView, AutoRenderItemView, calls;
+        calls = 0;
+        AutoRenderItemView = (function(_super) {
+
+          __extends(AutoRenderItemView, _super);
+
+          function AutoRenderItemView() {
+            return AutoRenderItemView.__super__.constructor.apply(this, arguments);
+          }
+
+          AutoRenderItemView.prototype.autoRender = false;
+
+          AutoRenderItemView.prototype.render = function() {
+            AutoRenderItemView.__super__.render.apply(this, arguments);
+            return calls += 1;
+          };
+
+          return AutoRenderItemView;
+
+        })(ItemView);
+        AutoRenderCollectionView = (function(_super) {
+
+          __extends(AutoRenderCollectionView, _super);
+
+          function AutoRenderCollectionView() {
+            return AutoRenderCollectionView.__super__.constructor.apply(this, arguments);
+          }
+
+          AutoRenderCollectionView.prototype.itemView = AutoRenderItemView;
+
+          return AutoRenderCollectionView;
+
+        })(Mildred.CollectionView);
+        createCollection();
+        collectionView = new AutoRenderCollectionView({
+          collection: collection
+        });
+        return expect(calls).to.be(collection.length);
+      });
+    });
+    describe('Basic collection change behavior', function() {
+      it('should add views when collection items are added', function() {
+        basicSetup();
+        addThree();
+        return viewsMatchCollection();
+      });
+      it('should remove views when collection items are removed', function() {
+        var models;
+        basicSetup();
+        models = addThree();
+        collection.remove(models);
+        return viewsMatchCollection();
+      });
+      return it('should remove all views when collection is emptied', function() {
+        var children;
+        basicSetup();
+        collection.reset();
+        children = getViewChildren();
+        return expect(children.length).to.be(0);
+      });
+    });
+    describe('Sorting', function() {
+      return it('should reorder views on sort', function() {
+        var sortAndMatch;
+        basicSetup(threeModels());
+        sortAndMatch = function(comparator) {
+          collection.comparator = comparator;
+          collection.sort();
+          return viewsMatchCollection();
+        };
+        sortAndMatch(function(a, b) {
+          return a.id > b.id;
+        });
+        return sortAndMatch(function(a, b) {
+          return a.id < b.id;
+        });
+      });
+    });
+    describe('Complex Reset and Set behavior', function() {
+      it('should reuse views on reset', function() {
+        var model1, model2, newView1, view1, view2;
+        basicSetup();
+        expect(collectionView.getItemViews()).to.be.an('object');
+        model1 = collection.at(0);
+        view1 = collectionView.subview("itemView:" + model1.cid);
+        expect(view1).to.be.an(ItemView);
+        model2 = collection.at(1);
+        view2 = collectionView.subview("itemView:" + model2.cid);
+        expect(view2).to.be.an(ItemView);
+        collection.reset(model1);
+        expect(view1.disposed).to.be(false);
+        expect(view2.disposed).to.be(true);
+        newView1 = collectionView.subview("itemView:" + model1.cid);
+        return expect(newView1).to.be(view1);
+      });
+      it('should insert views in the right order on reset', function() {
+        var baseResetAndCheck, full, m0, m1, m2, m3, m4, m5, makeResetAndCheck, resetAndCheck;
+        basicSetup();
+        m0 = new Mildred.Model({
+          id: 0
+        });
+        m1 = new Mildred.Model({
+          id: 1
+        });
+        m2 = new Mildred.Model({
+          id: 2
+        });
+        m3 = new Mildred.Model({
+          id: 3
+        });
+        m4 = new Mildred.Model({
+          id: 4
+        });
+        m5 = new Mildred.Model({
+          id: 5
+        });
+        baseResetAndCheck = function(models1, models2) {
+          collection.reset(models1);
+          collection.reset(models2);
+          return viewsMatchCollection();
+        };
+        makeResetAndCheck = function(models1) {
+          return function(models2) {
+            return baseResetAndCheck(models1, models2);
+          };
+        };
+        full = [m0, m1, m2, m3, m4, m5];
+        resetAndCheck = makeResetAndCheck(full);
+        resetAndCheck([m1, m2, m3, m4, m5]);
+        resetAndCheck([m0, m1, m2, m3, m4]);
+        resetAndCheck([m0, m1, m4, m5]);
+        resetAndCheck([m1, m3, m5]);
+        resetAndCheck([m0, m2, m4]);
+        resetAndCheck = makeResetAndCheck([m1, m2, m3]);
+        resetAndCheck([m0, m1, m2, m3]);
+        resetAndCheck([m1, m2, m3, m4]);
+        baseResetAndCheck([m0, m1, m4, m5], full);
+        baseResetAndCheck([m1, m3, m5], full);
+        baseResetAndCheck([m0, m2, m4], full);
+        baseResetAndCheck([m0, m2, m3], [m1, m2, m3]);
+        baseResetAndCheck([m0, m2, m5], [m0, m3, m5]);
+        baseResetAndCheck([m0, m2, m5], [m0, m3, m5]);
+        baseResetAndCheck([m0, m2, m3, m5], [m0, m3, m4, m5]);
+        baseResetAndCheck([m0, m1, m2, m3], [m0, m2, m1, m3]);
+        return baseResetAndCheck([m0, m1, m2], [m3, m4, m5]);
+      });
+      return it('should insert views in the right order on set', function() {
+        var baseSetAndCheck, full, m0, m1, m2, m3, m4, m5, makeSetAndCheck, setAndCheck;
+        basicSetup();
+        m0 = new Mildred.Model({
+          id: 0
+        });
+        m1 = new Mildred.Model({
+          id: 1
+        });
+        m2 = new Mildred.Model({
+          id: 2
+        });
+        m3 = new Mildred.Model({
+          id: 3
+        });
+        m4 = new Mildred.Model({
+          id: 4
+        });
+        m5 = new Mildred.Model({
+          id: 5
+        });
+        baseSetAndCheck = function(models1, models2) {
+          collection.reset(models1);
+          collection.set(models2);
+          return viewsMatchCollection();
+        };
+        makeSetAndCheck = function(setup) {
+          return function(models) {
+            return baseSetAndCheck(setup, models);
+          };
+        };
+        full = [m0, m1, m2, m3, m4, m5];
+        setAndCheck = makeSetAndCheck(full);
+        setAndCheck([m1, m2, m3, m4, m5]);
+        setAndCheck([m0, m1, m2, m3, m4]);
+        setAndCheck([m0, m1, m4, m5]);
+        setAndCheck([m1, m3, m5]);
+        setAndCheck([m0, m2, m4]);
+        setAndCheck = makeSetAndCheck([m1, m2, m3]);
+        setAndCheck([m0, m1, m2, m3]);
+        setAndCheck([m1, m2, m3, m4]);
+        baseSetAndCheck([m0, m1, m4, m5], full);
+        baseSetAndCheck([m1, m3, m5], full);
+        baseSetAndCheck([m0, m2, m4], full);
+        baseSetAndCheck([m0, m2, m3], [m1, m2, m3]);
+        baseSetAndCheck([m0, m2, m5], [m0, m3, m5]);
+        baseSetAndCheck([m0, m2, m5], [m0, m3, m5]);
+        baseSetAndCheck([m0, m2, m3, m5], [m0, m3, m4, m5]);
+        baseSetAndCheck([m0, m1, m2, m3], [m0, m2, m1, m3]);
+        return baseSetAndCheck([m0, m1, m2], [m3, m4, m5]);
+      });
+    });
+    describe('Visible items', function() {
+      it('should have a visibleItems array', function() {
+        var visibleItems;
+        basicSetup();
+        visibleItems = collectionView.visibleItems;
+        expect(visibleItems).to.be.an('array');
+        expect(visibleItems.length).to.be(collection.length);
+        return collection.forEach(function(model, index) {
+          return expect(visibleItems[index]).to.be(model);
+        });
+      });
+      return it('should fire visibilityChange events', function() {
+        var visibilityChange;
+        basicSetup([]);
+        visibilityChange = sinon.spy();
+        collectionView.on('visibilityChange', visibilityChange);
+        addOne();
+        expect(visibilityChange).was.calledWith(collectionView.visibleItems);
+        return expect(collectionView.visibleItems.length).to.be(1);
+      });
+    });
+    describe('Animation', function() {
+      var AnimatingCollectionView;
+      AnimatingCollectionView = (function(_super) {
+
+        __extends(AnimatingCollectionView, _super);
+
+        function AnimatingCollectionView() {
+          return AnimatingCollectionView.__super__.constructor.apply(this, arguments);
+        }
+
+        AnimatingCollectionView.prototype.tagName = 'ul';
+
+        AnimatingCollectionView.prototype.animationDuration = 1;
+
+        AnimatingCollectionView.prototype.itemView = ItemView;
+
+        return AnimatingCollectionView;
+
+      })(Mildred.CollectionView);
+      it('should animate the opacity of new items', function() {
+        var $animate, $css, args;
+        $css = sinon.stub(jQuery.prototype, 'css', function() {
+          return this;
+        });
+        $animate = sinon.stub(jQuery.prototype, 'animate', function() {
+          return this;
+        });
+        createCollection();
+        collectionView = new AnimatingCollectionView({
+          collection: collection
+        });
+        expect($css.callCount).to.be(collection.length);
+        expect($css).was.calledWith('opacity', 0);
+        expect($animate.callCount).to.be(collection.length);
+        args = $animate.firstCall.args;
+        expect(args[0]).to.eql({
+          opacity: 1
+        });
+        expect(args[1]).to.be(collectionView.animationDuration);
+        expect($css.calledBefore($animate)).to.be(true);
+        addThree();
+        expect($css.callCount).to.be(collection.length);
+        $css.restore();
+        return $animate.restore();
+      });
+      it('should not animate if animationDuration is 0', function() {
+        var $animate, $css;
+        $css = sinon.spy(jQuery.prototype, 'css');
+        $animate = sinon.spy(jQuery.prototype, 'animate');
+        createCollection();
+        collectionView = new TestCollectionView({
+          collection: collection
+        });
+        expect($css).was.notCalled();
+        expect($animate).was.notCalled();
+        addThree();
+        expect($css).was.notCalled();
+        expect($animate).was.notCalled();
+        $css.restore();
+        return $animate.restore();
+      });
+      it('should not animate when re-inserting', function() {
+        var $animate, $css, model1, model2, model3;
+        $css = sinon.stub(jQuery.prototype, 'css', function() {
+          return this;
+        });
+        $animate = sinon.stub(jQuery.prototype, 'animate', function() {
+          return this;
+        });
+        model1 = new Mildred.Model({
+          id: 1
+        });
+        model2 = new Mildred.Model({
+          id: 2
+        });
+        model3 = new Mildred.Model({
+          id: 3
+        });
+        createCollection([model1, model2]);
+        collectionView = new AnimatingCollectionView({
+          collection: collection
+        });
+        expect($css).was.calledTwice();
+        expect($animate).was.calledTwice();
+        collection.reset([model1, model2, model3]);
+        expect($css.callCount).to.be(collection.length);
+        expect($animate.callCount).to.be(collection.length);
+        $css.restore();
+        return $animate.restore();
+      });
+      it('should animate with CSS classes', function(done) {
+        var child, children, _i, _len;
+        AnimatingCollectionView = (function(_super) {
+
+          __extends(AnimatingCollectionView, _super);
+
+          function AnimatingCollectionView() {
+            return AnimatingCollectionView.__super__.constructor.apply(this, arguments);
+          }
+
+          AnimatingCollectionView.prototype.useCssAnimation = true;
+
+          AnimatingCollectionView.prototype.itemView = ItemView;
+
+          return AnimatingCollectionView;
+
+        })(Mildred.CollectionView);
+        createCollection();
+        collectionView = new AnimatingCollectionView({
+          collection: collection
+        });
+        children = getAllChildren();
+        for (_i = 0, _len = children.length; _i < _len; _i++) {
+          child = children[_i];
+          expect($(child).hasClass('animated-item-view')).to.be["true"];
+        }
+        return setTimeout(function() {
+          var _j, _len1;
+          for (_j = 0, _len1 = children.length; _j < _len1; _j++) {
+            child = children[_j];
+            expect($(child).hasClass('animated-item-view-end')).to.be["true"];
+          }
+          return done();
+        }, 1);
+      });
+      return it('should animate with custom CSS classes', function(done) {
+        var child, children, _i, _len;
+        AnimatingCollectionView = (function(_super) {
+
+          __extends(AnimatingCollectionView, _super);
+
+          function AnimatingCollectionView() {
+            return AnimatingCollectionView.__super__.constructor.apply(this, arguments);
+          }
+
+          AnimatingCollectionView.prototype.useCssAnimation = true;
+
+          AnimatingCollectionView.prototype.animationStartClass = 'a';
+
+          AnimatingCollectionView.prototype.animationEndClass = 'b';
+
+          AnimatingCollectionView.prototype.itemView = ItemView;
+
+          return AnimatingCollectionView;
+
+        })(Mildred.CollectionView);
+        createCollection();
+        collectionView = new AnimatingCollectionView({
+          collection: collection
+        });
+        children = getAllChildren();
+        for (_i = 0, _len = children.length; _i < _len; _i++) {
+          child = children[_i];
+          expect($(child).hasClass('a')).to.be["true"];
+        }
+        return setTimeout(function() {
+          var _j, _len1;
+          for (_j = 0, _len1 = children.length; _j < _len1; _j++) {
+            child = children[_j];
+            expect($(child).hasClass('b')).to.be["true"];
+          }
+          return done();
+        }, 1);
+      });
+    });
+    describe('Filtering', function() {
+      it('should filter views using the filterer', function() {
+        var filterer;
+        basicSetup();
+        filterer = sinon.spy(function(model, position) {
+          expect(model).to.be.a(Mildred.Model);
+          expect(position).to.be.a('number');
+          return true;
+        });
+        collectionView.filter(filterer);
+        return expect(filterer.callCount).to.be(collection.length);
+      });
+      it('should hide filtered views per default', function() {
+        var children;
+        basicSetup();
+        addThree();
+        collectionView.filter(function(model) {
+          return model.get('title') === 'new';
+        });
+        children = getViewChildren();
+        return collection.forEach(function(model, index) {
+          var $el, displayValue, visible;
+          $el = children.eq(index);
+          visible = model.get('title') === 'new';
+          displayValue = $el.css('display');
+          if (visible) {
+            return expect(displayValue).not.to.be('none');
+          } else {
+            return expect(displayValue).to.be('none');
+          }
+        });
+      });
+      it('should respect the filterer option', function() {
+        var children, filterer;
+        createCollection();
+        filterer = function(model) {
+          return model.id === 'A';
+        };
+        collectionView = new TestCollectionView({
+          collection: collection,
+          filterer: filterer
+        });
+        expect(collectionView.filterer).to.be(filterer);
+        expect(collectionView.visibleItems.length).to.be(1);
+        children = getViewChildren();
+        return expect(children.length).to.be(collection.length);
+      });
+      it('should remove the filter', function() {
+        var children;
+        basicSetup();
+        addThree();
+        collectionView.filter(function(model) {
+          return model.get('title') === 'new';
+        });
+        collectionView.filter(null);
+        children = getViewChildren();
+        children.each(function(index, element) {
+          var displayValue;
+          displayValue = jQuery(element).css('display');
+          return expect(displayValue).not.to.be('none');
+        });
+        return expect(collectionView.visibleItems.length).to.be(collection.length);
+      });
+      it('should save the filterer', function() {
+        var filterer;
+        basicSetup();
+        filterer = function() {
+          return false;
+        };
+        collectionView.filter(filterer);
+        expect(collectionView.filterer).to.be(filterer);
+        collectionView.filter(null);
+        return expect(collectionView.filterer).to.be(null);
+      });
+      return it('should trigger visibilityChange and update visibleItems', function() {
+        var args, visibilityChange;
+        basicSetup();
+        addThree();
+        expect(collectionView.visibleItems.length).to.be(collection.length);
+        visibilityChange = sinon.spy();
+        collectionView.on('visibilityChange', visibilityChange);
+        collectionView.filter(function(model) {
+          return model.get('title') === 'new';
+        });
+        expect(visibilityChange).was.calledOnce();
+        args = visibilityChange.firstCall.args;
+        expect(args.length).to.be(1);
+        expect(args[0]).to.be(collectionView.visibleItems);
+        expect(collectionView.visibleItems.length).to.be(3);
+        collectionView.filter(null);
+        return expect(collectionView.visibleItems.length).to.be(collection.length);
+      });
+    });
+    describe('Filter callback', function() {
+      it('should filter views with a callback', function() {
+        var call, checkCall, filterCallback, filterCallbackSpy, filterer, index, model, models, startIndex, _i, _len;
+        basicSetup();
+        filterer = function(model) {
+          return model.get('title') === 'new';
+        };
+        filterCallback = function(view, included) {
+          return view.$el.addClass(included ? 'included' : 'not-included');
+        };
+        filterCallbackSpy = sinon.spy(filterCallback);
+        collectionView.filter(filterer, filterCallbackSpy);
+        expect(filterCallbackSpy.callCount).to.be(collection.length);
+        checkCall = function(model, call) {
+          var hasClass, included, view;
+          view = collectionView.subview("itemView:" + model.cid);
+          included = filterer(model);
+          expect(call.calledWith(view, included)).to.be(true);
+          hasClass = view.$el.hasClass(included ? 'included' : 'not-included');
+          return expect(hasClass).to.be(true);
+        };
+        collection.forEach(function(model, index) {
+          var call;
+          call = filterCallbackSpy.getCall(index);
+          return checkCall(model, call);
+        });
+        models = addThree();
+        expect(filterCallbackSpy.callCount).to.be(collection.length);
+        startIndex = 26;
+        for (index = _i = 0, _len = models.length; _i < _len; index = ++_i) {
+          model = models[index];
+          call = filterCallbackSpy.getCall(startIndex + index);
+          checkCall(model, call);
+        }
+      });
+      it('should save the filter callback', function() {
+        var filterCallback, filterer;
+        basicSetup();
+        filterer = function() {
+          return false;
+        };
+        return filterCallback = function() {
+          expect(collectionView.filterCallback).to.be(CollectionView.prototype.filterCallback);
+          collectionView.filter(filterer, filterCallback);
+          return expect(collectionView.filterCallback).to.be(filterCallback);
+        };
+      });
+      return it('should not call the filter callback when unfiltered', function() {
+        var spy;
+        createCollection([]);
+        collectionView = new TestCollectionView({
+          collection: collection
+        });
+        spy = sinon.spy(collectionView, 'filterCallback');
+        fillCollection();
+        addThree();
+        return expect(spy).was.notCalled();
+      });
+    });
+    describe('Disposal', function() {
+      return it('should dispose itself correctly', function() {
+        var cid, prop, view, viewsByCid, _i, _len, _ref;
+        basicSetup();
+        expect(collectionView.dispose).to.be.a('function');
+        viewsByCid = collectionView.getItemViews();
+        expect(collectionView.disposed).to.be(false);
+        for (cid in viewsByCid) {
+          view = viewsByCid[cid];
+          expect(view.disposed).to.be(false);
+        }
+        collectionView.dispose();
+        expect(collectionView.disposed).to.be(true);
+        for (cid in viewsByCid) {
+          view = viewsByCid[cid];
+          expect(view.disposed).to.be(true);
+        }
+        _ref = ['visibleItems'];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          prop = _ref[_i];
+          expect(_.has(collectionView, prop)).to.be(false);
+        }
+      });
+    });
+    return describe('Templated CollectionView', function() {
+      var TemplatedCollectionView;
+      TemplatedCollectionView = (function(_super) {
+
+        __extends(TemplatedCollectionView, _super);
+
+        function TemplatedCollectionView() {
+          return TemplatedCollectionView.__super__.constructor.apply(this, arguments);
+        }
+
+        TemplatedCollectionView.prototype.fallbackSelector = '> .fallback';
+
+        TemplatedCollectionView.prototype.listSelector = '> ol';
+
+        TemplatedCollectionView.prototype.loadingSelector = '> .loading';
+
+        TemplatedCollectionView.prototype.getTemplateFunction = function() {
+          return function() {
+            return "<h2>TemplatedCollectionView</h2>\n<ol></ol>\n<p class=\"loading\">Loading…</p>\n<p class=\"fallback\">This list is empty.</p>";
+          };
+        };
+
+        return TemplatedCollectionView;
+
+      })(TestCollectionView);
+      beforeEach(function() {
+        createCollection();
+        _.extend(collection, Mildred.SyncMachine);
+        return collectionView = new TemplatedCollectionView({
+          collection: collection
+        });
+      });
+      describe('Template rendering', function() {
+        it('should render the template', function() {
+          var children;
+          children = getAllChildren();
+          return expect(children.length).to.be(4);
+        });
+        return it('should pass the length and the sync status to the template', function() {
+          var data;
+          data = collectionView.getTemplateData();
+          return expect(data).to.eql({
+            length: collection.length,
+            synced: collection.isSynced()
+          });
+        });
+      });
+      describe('Selectors', function() {
+        it('should append views to the listSelector', function() {
+          var $list, $list2, children;
+          $list = collectionView.$list;
+          expect($list).to.be.a(jQuery);
+          expect($list.length).to.be(1);
+          $list2 = collectionView.$(collectionView.listSelector);
+          expect($list.get(0)).to.be($list2.get(0));
+          children = getViewChildren();
+          return expect(children.length).to.be(collection.length);
+        });
+        return it('should respect the itemSelector property', function() {
+          var MixedCollectionView, additionalLength, allChildren, viewChildren;
+          MixedCollectionView = (function(_super) {
+
+            __extends(MixedCollectionView, _super);
+
+            function MixedCollectionView() {
+              return MixedCollectionView.__super__.constructor.apply(this, arguments);
+            }
+
+            MixedCollectionView.prototype.itemSelector = 'li';
+
+            MixedCollectionView.prototype.templateFunction = function(templateData) {
+              return "<p>foo</p>\n<div>bar</div>\n<article>qux</article>\n<ul>\n<li>nested</li>\n</ul>";
+            };
+
+            MixedCollectionView.prototype.getTemplateFunction = function() {
+              return this.templateFunction;
+            };
+
+            return MixedCollectionView;
+
+          })(TestCollectionView);
+          collectionView.dispose();
+          collectionView = new MixedCollectionView({
+            collection: collection
+          });
+          additionalLength = 4;
+          allChildren = getAllChildren();
+          expect(allChildren.length).to.be(collection.length + additionalLength);
+          viewChildren = getViewChildren();
+          expect(viewChildren.length).to.be(collection.length);
+          expect(allChildren.eq(0).get(0)).to.not.be(viewChildren.get(0));
+          return expect(allChildren.eq(additionalLength).get(0)).to.be(viewChildren.get(0));
+        });
+      });
+      describe('Fallback element', function() {
+        it('should set the fallback element properly', function() {
+          var $fallback, $fallback2;
+          $fallback = collectionView.$fallback;
+          expect($fallback).to.be.a(jQuery);
+          expect($fallback.length).to.be(1);
+          $fallback2 = collectionView.$(collectionView.fallbackSelector);
+          return expect($fallback.get(0)).to.be($fallback2.get(0));
+        });
+        it('should show the fallback element properly', function() {
+          var $fallback, expectInvisible, expectVisible;
+          $fallback = collectionView.$fallback;
+          expectVisible = function() {
+            return expect($fallback.css('display')).to.be('block');
+          };
+          expectInvisible = function() {
+            return expect($fallback.css('display')).to.be('none');
+          };
+          collection.unsync();
+          expectInvisible();
+          collection.beginSync();
+          expectInvisible();
+          collection.finishSync();
+          expectInvisible();
+          collection.reset();
+          collection.unsync();
+          expectInvisible();
+          collection.beginSync();
+          expectInvisible();
+          collection.finishSync();
+          expectVisible();
+          addOne();
+          return expectInvisible();
+        });
+        return it('should show the fallback after filtering all items', function() {
+          var filterer;
+          collection.beginSync();
+          collection.finishSync();
+          filterer = function() {
+            return false;
+          };
+          collectionView.dispose();
+          collectionView = new TemplatedCollectionView({
+            collection: collection,
+            filterer: filterer
+          });
+          expect(collectionView.filterer).to.be(filterer);
+          expect(collectionView.visibleItems.length).to.be(0);
+          return expect(collectionView.$fallback.css('display')).to.be('block');
+        });
+      });
+      describe('Loading indicator', function() {
+        it('should set the loading indicator properly', function() {
+          var $loading, $loading2;
+          $loading = collectionView.$loading;
+          expect($loading).to.be.a(jQuery);
+          expect($loading.length).to.be(1);
+          $loading2 = collectionView.$(collectionView.loadingSelector);
+          return expect($loading2.get(0)).to.be($loading.get(0));
+        });
+        return it('should show the loading indicator properly', function() {
+          var $loading, expectInvisible, expectVisible;
+          $loading = collectionView.$loading;
+          expectVisible = function() {
+            return expect($loading.css('display')).to.be('block');
+          };
+          expectInvisible = function() {
+            return expect($loading.css('display')).to.be('none');
+          };
+          collection.unsync();
+          expectInvisible();
+          collection.beginSync();
+          expectInvisible();
+          collection.finishSync();
+          expectInvisible();
+          collection.reset();
+          collection.unsync();
+          expectInvisible();
+          collection.beginSync();
+          expectVisible();
+          collection.finishSync();
+          expectInvisible();
+          addOne();
+          return expectInvisible();
+        });
+      });
+      describe('Invalid behavior', function() {
+        return it('should throw an error of there is no initItemView', function() {
+          createCollection();
+          return expect(function() {
+            return collectionView = new CollectionView({
+              collection: collection
+            });
+          }).to.throwError();
+        });
+      });
+      return describe('Disposal', function() {
+        return it('should also dispose when templated', function() {
+          var prop, _i, _len, _ref;
+          collectionView.dispose();
+          _ref = ['$list', '$fallback', '$loading'];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            prop = _ref[_i];
+            expect(_.has(collectionView, prop)).to.be(false);
+          }
+        });
+      });
+    });
+  });
+
   describe('Layout', function() {
     var createLink, expectWasNotRouted, expectWasRouted, layout, router, testController;
     layout = testController = router = null;
@@ -1431,9 +2405,6 @@
       expect(layout.dispose).to.be.a('function');
       layout.dispose();
       expect(layout.disposed).to.be(true);
-      if (Object.isFrozen) {
-        expect(Object.isFrozen(layout)).to.be(true);
-      }
       layout.trigger('foo');
       $('#testbed').click();
       expect(spy1).was.notCalled();
@@ -1457,7 +2428,7 @@
     });
     afterEach(function() {
       controller.dispose();
-      return mediator.removeHandlers(['router:route']);
+      return Backbone.off('router:route');
     });
     it('should mixin a Backbone.Events', function() {
       var name, value, _ref, _results;
@@ -1482,7 +2453,7 @@
       var routerRoute, url;
       expect(controller.redirectTo).to.be.a('function');
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       url = 'redirect-target/123';
       controller.redirectTo(url);
       expect(controller.redirected).to.be(true);
@@ -1491,7 +2462,7 @@
     it('should redirect to a URL with routing options', function() {
       var options, routerRoute, url;
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       url = 'redirect-target/123';
       options = {
         replace: true
@@ -1503,7 +2474,7 @@
     it('should redirect to a named route', function() {
       var name, params, pathDesc, routerRoute;
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       name = 'params';
       params = {
         one: '21'
@@ -1519,7 +2490,7 @@
     it('should redirect to a named route with options', function() {
       var name, options, params, pathDesc, routerRoute;
       routerRoute = sinon.spy();
-      mediator.setHandler('router:route', routerRoute);
+      Backbone.on('router:route', routerRoute);
       name = 'params';
       params = {
         one: '21'
@@ -1538,20 +2509,16 @@
     it('should adjust page title', function() {
       var spy;
       spy = sinon.spy();
-      mediator.setHandler('adjustTitle', spy);
+      Backbone.on('adjustTitle', spy);
       controller.adjustTitle('meh');
       expect(spy).was.calledOnce();
       return expect(spy).was.calledWith('meh');
     });
     return describe('Disposal', function() {
-      mediator.setHandler('region:unregister', function() {});
       it('should dispose itself correctly', function() {
         expect(controller.dispose).to.be.a('function');
         controller.dispose();
-        expect(controller.disposed).to.be(true);
-        if (Object.isFrozen) {
-          return expect(Object.isFrozen(controller)).to.be(true);
-        }
+        return expect(controller.disposed).to.be(true);
       });
       it('should dispose disposable properties', function() {
         var model, view;
@@ -1568,15 +2535,15 @@
       it('should unsubscribe from Pub/Sub events', function() {
         var pubSubSpy;
         pubSubSpy = sinon.spy();
-        controller.subscribeEvent('foo', pubSubSpy);
+        controller.on('foo', pubSubSpy);
         controller.dispose();
-        mediator.publish('foo');
+        controller.trigger('foo');
         return expect(pubSubSpy).was.notCalled();
       });
       return it('should unsubscribe from other events', function() {
         var model, spy;
         spy = sinon.spy();
-        model = new Model;
+        model = new Mildred.Model;
         controller.listenTo(model, 'foo', spy);
         controller.dispose();
         model.trigger('foo');
@@ -1752,10 +2719,7 @@
       it('should dispose itself correctly', function() {
         expect(model.dispose).to.be.a('function');
         model.dispose();
-        expect(model.disposed).to.be(true);
-        if (Object.isFrozen) {
-          return expect(Object.isFrozen(model)).to.be(true);
-        }
+        return expect(model.disposed).to.be(true);
       });
       it('should fire a dispose event', function() {
         var disposeSpy;
@@ -1848,10 +2812,7 @@
         expect(collection.dispose).to.be.a('function');
         collection.dispose();
         expect(collection.length).to.be(0);
-        expect(collection.disposed).to.be(true);
-        if (Object.isFrozen) {
-          return expect(Object.isFrozen(collection)).to.be(true);
-        }
+        return expect(collection.disposed).to.be(true);
       });
       it('should fire a dispose event', function() {
         var disposeSpy;

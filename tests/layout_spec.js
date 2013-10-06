@@ -280,9 +280,6 @@
       expect(layout.dispose).to.be.a('function');
       layout.dispose();
       expect(layout.disposed).to.be(true);
-      if (Object.isFrozen) {
-        expect(Object.isFrozen(layout)).to.be(true);
-      }
       layout.trigger('foo');
       $('#testbed').click();
       expect(spy1).was.notCalled();

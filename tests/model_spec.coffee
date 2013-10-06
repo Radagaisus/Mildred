@@ -131,8 +131,6 @@ describe 'Model', ->
       model.dispose()
 
       expect(model.disposed).to.be true
-      if Object.isFrozen
-        expect(Object.isFrozen(model)).to.be true
 
     it 'should fire a dispose event', ->
       disposeSpy = sinon.spy()

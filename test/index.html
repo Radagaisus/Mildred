@@ -8,16 +8,15 @@
 <body>
     <div id="mocha"></div>
     <div id="testbed"></div>
-
-    <script src="/usr/lib/node_modules/mocha/mocha.js"></script>
+    <script src="libs/mocha.js"></script>
     <script src="libs/expect.js"></script>
     <script src="libs/sinon.js"></script>
     <script src="libs/sinon-expect.js"></script>
 
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="http://underscorejs.org/underscore-min.js"></script>
-    <script src="../vendor/backbone.js"></script>
-    <script src="../mildred/mildred.js"></script>
+    <script src="bower_components/backbone/backbone.js"></script>
+    <script src="../dist/mildred.js"></script>
     <script>
         mocha.setup({ui: 'bdd', ignoreLeaks: true});
         window.expect = SinonExpect.enhance(expect, sinon, 'was');
@@ -25,7 +24,9 @@
 
     <script src="tests.js"></script>
     <script>
-        mocha.run();
+        window.onload = function() {
+            mocha.run();
+        }
     </script>
 </body>
 </html>

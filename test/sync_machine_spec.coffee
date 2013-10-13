@@ -74,4 +74,4 @@ describe 'SyncMachine', ->
     expect(synced).was.calledOnce()
 
     machine.unsync()
-    expect(unsynced).was.calledTwice()  # Including initial call.
+    expect(unsynced).was.calledTwice() # Including initial call.

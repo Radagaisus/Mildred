@@ -1,5 +1,7 @@
+test/bower_components/*
 node_modules/*
 tmp/
+temp/*
 coverage
 *.com
 *.class

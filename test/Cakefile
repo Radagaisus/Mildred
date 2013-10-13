@@ -28,4 +28,4 @@ task 'build', 'Build single test file from source files', ->
         console.log stdout + stderr
         fs.unlink 'tests.coffee', (err) ->
           throw err if err
-          console.log 'Done.'
+

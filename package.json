@@ -1,0 +1,27 @@
+{
+  "name": "mildred",
+  "version": "0.0.1",
+  "description": "Application Architecture for BackboneJS",
+  "repository": "git://github.com/snird/Mildred.git",
+  "devDependencies": {
+    "grunt": "0.4.x",
+    "grunt-contrib-coffee": "0.4.x",
+    "grunt-contrib-clean": "0.4.x",
+    "grunt-contrib-concat": "0.1.x",
+    "grunt-contrib-copy": "0.4.x",
+    "grunt-contrib-watch": "0.1.4",
+    "grunt-bower-task": "0.3.x",
+    "grunt-contrib-uglify": "0.2.x",
+    "grunt-istanbul": "0.2.x",
+    "grunt-coffeelint": "0.0.x",
+    "grunt-mocha": "0.2.x",
+    "grunt-shell": "latest",
+    "prompt": "0.2.x",
+    "phantomjs": "latest"
+  },
+  "main": "build/mildred.js",
+  "scripts": {
+    "build": "grunt clean build",
+    "test": "grunt clean test"
+  }
+}

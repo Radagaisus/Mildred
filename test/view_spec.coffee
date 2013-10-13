@@ -7,6 +7,26 @@ describe 'View', ->
   # set templateFunction globally
   Mildred.templateFunction = _.template
 
+  class TestView extends Mildred.View
+    id: 'test-view'
+
+    # Overrides super
+    initialize: ->
+      super
+
+    getTemplateFunction: ->
+      -> template
+
+    # Overrides render
+    render: ->
+      super
+      renderCalled = true
+
+  class ConfiguredTestView extends TestView
+    autoRender: true
+    container: '#testbed'
+    containerMethod: 'before'
+  
   beforeEach ->
     renderCalled = false
     view = new TestView
@@ -31,26 +51,6 @@ describe 'View', ->
 
   delay = (callback) ->
     window.setTimeout callback, 40
-
-  class TestView extends Mildred.View
-    id: 'test-view'
-
-    # Overrides super
-    initialize: ->
-      super
-
-    getTemplateFunction: ->
-      -> template
-
-    # Overrides render
-    render: ->
-      super
-      renderCalled = true
-
-  class ConfiguredTestView extends TestView
-    autoRender: true
-    container: '#testbed'
-    containerMethod: 'before'
 
   it 'should render', ->
     expect(view.render).to.be.a 'function'

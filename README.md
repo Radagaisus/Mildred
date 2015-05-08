@@ -1,6 +1,6 @@
 # Mildred!
 
-- Fork of [ChaplinJS](http://chaplinjs.org/)
+- Fork of [ChaplinJS](http://chaplinjs.org/). See [here](https://github.com/snird/Mildred)
 - Non-AMD
 - Awesome
 
